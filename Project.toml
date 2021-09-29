@@ -15,6 +15,11 @@ Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 
 [compat]
 GalacticOptim = "2"
+Optim = "1"
+Revise = "3"
+Parameters = "0.12"
+Distributions = "0.25"
+ForwardDiff = "0.10"
 julia = "1.6"
 
 [extras]
