@@ -17,7 +17,7 @@ To see how to use the package, check the file *test/runtests.jl*, which sets up 
 5. calculates standard errors of the parameter estimates. 
 
 ## Installing the package
-Note, the package was tested and should be run with Julia version 1.6. 
+Note, the package was tested and should be run with Julia version 1.6. or newer. 
 1. Download and extract the package from Github (e.g. through `git clone`)
 2. In Julia, navigate to the package folder (or open the folder in VSCode)
 3. Activate environment: `using Pkg; Pkg.activate(".")`
