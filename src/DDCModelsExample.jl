@@ -8,7 +8,7 @@ export estimate_model, calc_stderr
 # Load additional packages  
 using Parameters 
 using LinearAlgebra, Distributions, Random
-using GalacticOptim, Optim, ForwardDiff 
+using Optimization, OptimizationOptimJL, ForwardDiff 
 
 # Include  the source files 
 include("types.jl")

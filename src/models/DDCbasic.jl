@@ -189,12 +189,12 @@ function estimate_model(m::DDCbasic,X,choices;
 	end
 	
 	# Wrap into objective function. Note, p is unused, 
-	# but required by GalacticOptim.jl
+	# but required by Optimization.jl
 	function f(θ,p) 
 		f(θ,m,X,choices)
 	end
 
-	# Define objective function and problem for GalactiOptim.jl
+	# Define objective function and problem for Optimization.jl
 	of = OptimizationFunction(f,m.options.AD)        
 	prob = OptimizationProblem(of,startvals)
 

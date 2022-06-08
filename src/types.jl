@@ -23,9 +23,9 @@ end
     # seed for data generation, and simulation
 	seed::Int = 42                  
     # Optimization algorithm (default LBFGS() from Optim.jl)
-    # For alternatives see GalacticOptim.jl, which is used to 
+    # For alternatives see Optimization.jl, which is used to 
     # implement optimization routine 
 	algo = LBFGS()  
-    # Automatic differentiation package (see GalacticOptim.jl for options)
-	AD = GalacticOptim.AutoForwardDiff() 
+    # Automatic differentiation package (see Optimization.jl for options)
+	AD = Optimization.AutoForwardDiff() 
 end
