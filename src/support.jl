@@ -1,15 +1,14 @@
 """
-	getrange(n)
+	get_chunks(n, tasks_per_thread=2)
 
-For a thread, returns respective range within 1:`n` to iterate over. 
+Returns chunk size and an iterator of chunks for parallelizing work over `n` items.
+Each chunk is a range of indices. The chunk size is determined by dividing `n` by
+`tasks_per_thread * Threads.nthreads()` to ensure good load balancing.
 """
-@inline function getrange(n)
-	tid = Threads.threadid()
-	nt = Threads.nthreads()
-	d , r = divrem(n, nt)
-	from = (tid - 1) * d + min(r, tid - 1) + 1
-	to = from + d - 1 + (tid ≤ r ? 1 : 0)
-	from:to
+function get_chunks(n::Int, tasks_per_thread::Int=2)
+	chunk_size = max(1, n ÷ (tasks_per_thread * Threads.nthreads()))
+	data_chunks = Iterators.partition(1:n, chunk_size)
+	return chunk_size, data_chunks
 end
 
 """
