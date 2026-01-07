@@ -1,6 +1,6 @@
 # DDCModelsExample.jl
 
-This package implements Julia code for the basic model in "Dynamic Discrete Choice Models: Methods, Matlab Code, and Exercises" of Abbring and Klein (2020). Detailed explanations of the model and the Matlab code are available here: [https://jabbring.github.io/dynamic-discrete-choice/dynamicDiscreteChoice.m.html](https://jabbring.github.io/dynamic-discrete-choice/dynamicDiscreteChoice.m.html)
+This package implements Julia code for the basic model in "Dynamic Discrete Choice Models: Methods, Matlab Code, and Exercises" of Abbring and Klein (2020). Detailed explanations of the model and the Matlab code are available here: [https://ddc.abbring.org/dynamicDiscreteChoice.m.html](https://ddc.abbring.org/dynamicDiscreteChoice.m.html)
 
 The goal is to set up the basic model and offer a package structure that easily extends to more complex DDC problems. Most functions are explained through docstrings (e.g. type `?estimate_model` to see the documentation). Steps in individual functions are explained in the respective source files. 
 
