@@ -102,21 +102,31 @@ function loglikelihood(m::DDCbasic,X,choices)
 	nperiod,nfirm = size(choices)
 	ΔU = calc_ΔU(m::DDCbasic)
 	pexit = 1 ./ (1 .+ exp.(ΔU))
-	ll = zeros(eltype(ΔU),Threads.nthreads())
-	Threads.@threads for threadid in 1:Threads.nthreads() 
-		for f in getrange(nfirm)
-			# Period 1 
-			ll[threadid] += log(choices[1,f] + (1-2*choices[1,f]) * 
-								pexit[getindX(m.supportX,X[1,f]),1])
-			# Loop through other periods 
-			for t in 2:nperiod 
-				ll[threadid] += log(choices[t,f] + (1-2*choices[t,f]) * 
-									pexit[getindX(m.supportX,X[t,f]),
-											choices[t-1,f]+1])
+
+	# Define chunks for parallelization
+	_, data_chunks = get_chunks(nfirm)
+
+	# Create and define tasks for each chunk
+	tasks = map(data_chunks) do chunk
+		Threads.@spawn begin
+			ll_local = zero(eltype(ΔU))
+			for f in chunk
+				# Period 1
+				ll_local += log(choices[1,f] + (1-2*choices[1,f]) *
+									pexit[getindX(m.supportX,X[1,f]),1])
+				# Loop through other periods
+				for t in 2:nperiod
+					ll_local += log(choices[t,f] + (1-2*choices[t,f]) *
+										pexit[getindX(m.supportX,X[t,f]),
+												choices[t-1,f]+1])
+				end
 			end
+			ll_local
 		end
 	end
-	return sum(ll)
+
+	# Collect results from all tasks
+	return sum(fetch, tasks)
 end
 
 """
@@ -128,36 +138,45 @@ function gen_data(m::DDCbasic,nperiod,nfirm)
 	P∞ = calc_pinf(m.Π)
 	dε = GeneralizedExtremeValue(0,1,0)
 	ΔU = calc_ΔU(m::DDCbasic)
-	
-	X = zeros(Int,nperiod,nfirm)
 
+	X = zeros(Int,nperiod,nfirm)
 	Δε = zeros(nperiod,nfirm)
 	choices = zeros(Bool,nperiod,nfirm)
 
-	dX0 = DiscreteNonParametric(m.supportX,P∞) 
-	dX = [DiscreteNonParametric(m.supportX,m.Π[i,:]) 
+	dX0 = DiscreteNonParametric(m.supportX,P∞)
+	dX = [DiscreteNonParametric(m.supportX,m.Π[i,:])
 			for i in eachindex(m.supportX)]
 
-	Threads.@threads for threadid in 1:Threads.nthreads() 
-		Random.seed!(m.options.seed+threadid)
-		for f in getrange(size(X,2))
-			# Period 1 
-			X[1,f] = rand(dX0) 
-			Δε[1,f] = rand(dε) - rand(dε) 
-			choices[1,f] = ΔU[getindX(m.supportX,X[1,f]),1] >
-								Δε[1,f]		
-			# Loop through other periods 
-			for t in 2:size(X,1)
-				X[t,f] = rand(dX[getindX(m.supportX,X[t-1,f])]) 
-				Δε[t,f] = rand(dε) - rand(dε) 
-				choices[t,f] = ΔU[getindX(m.supportX,X[t,f]),
-									choices[t-1,f] + 1 ] > Δε[t,f]		
-			end
+	# Define chunks for parallelization
+	_, data_chunks = get_chunks(nfirm)
 
+	# Create and define tasks for each chunk
+	tasks = map(data_chunks) do chunk
+		Threads.@spawn begin
+			for f in chunk
+				# Create thread-local RNG with deterministic seed based on firm index
+				rng = Random.MersenneTwister(m.options.seed + f)
+
+				# Period 1
+				X[1,f] = rand(rng, dX0)
+				Δε[1,f] = rand(rng, dε) - rand(rng, dε)
+				choices[1,f] = ΔU[getindX(m.supportX,X[1,f]),1] > Δε[1,f]
+
+				# Loop through other periods
+				for t in 2:nperiod
+					X[t,f] = rand(rng, dX[getindX(m.supportX,X[t-1,f])])
+					Δε[t,f] = rand(rng, dε) - rand(rng, dε)
+					choices[t,f] = ΔU[getindX(m.supportX,X[t,f]),
+										choices[t-1,f] + 1] > Δε[t,f]
+				end
+			end
 		end
 	end
 
-	return X,choices 
+	# Wait for all tasks to complete
+	foreach(wait, tasks)
+
+	return X,choices
 end
 
 
